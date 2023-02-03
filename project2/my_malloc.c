@@ -1,6 +1,9 @@
+#include <unistd.h>
+#include <stdio.h>
+
 #include "my_malloc.h"
 
-
+#include <pthread.h>
 
 // for lock version_lock
 MetaData * heap_start_lock = NULL;
@@ -66,7 +69,6 @@ void removeFromFreeList(MetaData * p) {
 // add a block to the free list
 // according to the block address in ascending order
 void addToFreeList(MetaData * p, MetaData * heap_start) {
-    //printf("line72:%p\n", heap_start);
     MetaData * curr = heap_start->next;
     while (curr < p && curr != heap_start) {
         curr = curr->next;
@@ -93,12 +95,12 @@ void split(MetaData * p, size_t size) {
 }
 
 // merge block p with p->prev to get a bigger free space
-void mergePrev(MetaData * p) {
+void mergePrev(MetaData * p, MetaData * heap_start) {
     size_t prev_block_size = META_DATA_SIZE + p->prev->size;
     MetaData * prev_block = p->prev;
 
     // do not merge with the sentinal
-    if (prev_block == heap_start_lock) return;
+    if (prev_block == heap_start) return;
 
     if ((char *) p == (char *) prev_block + prev_block_size) {
         size_t curr_block_size = META_DATA_SIZE + p->size;
@@ -108,12 +110,12 @@ void mergePrev(MetaData * p) {
 }
 
 // merge p with p->next to get a bigger free space
-void mergeNext(MetaData * p) {
+void mergeNext(MetaData * p, MetaData * heap_start) {
     size_t curr_block_size = META_DATA_SIZE + p->size;
     MetaData * next_block = p->next;
 
     // do not merge with the sentinal
-    if (next_block == heap_start_lock) return;
+    if (next_block == heap_start) return;
 
     if ((char *) p + curr_block_size == (char *) next_block) {
         size_t next_block_size = META_DATA_SIZE + p->next->size;
@@ -176,8 +178,8 @@ void bf_free(void *ptr, MetaData * heap_start, int is_lock) {
     }
     MetaData * p = (MetaData *)((char*) ptr - META_DATA_SIZE);
     addToFreeList(p, heap_start);
-    mergeNext(p);
-    mergePrev(p);
+    mergeNext(p, heap_start);
+    mergePrev(p, heap_start);
 }
 
 //Thread Safe malloc/free: locking version
