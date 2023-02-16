@@ -19,7 +19,7 @@ void player_set_up(int socket_fd) {
 
 /*
 player <machine_name> <port_num>
-(example: ./player vcm-xxxx.vm.duke.edu 1234)
+(e.g. ./player vcm-30716.vm.duke.edu 1234)
 */
 
 int main(int argc, char * argv[]) {
@@ -33,4 +33,27 @@ int main(int argc, char * argv[]) {
     int client_socket_fd = connect_with_server(hostname, hostport);
 
     player_set_up(client_socket_fd);
+
+    // player socket port number should be assigned by os???
+    int server_socket_fd = init_server_socket("");
+    int player_server_port_num = get_port_num_by_socket(server_socket_fd);
+    // send its server port to the master
+    send_int(client_socket_fd, player_server_port_num);
+
+
+    // receive info of left neigbour from the master
+    int left_port_num = receive_int(client_socket_fd);
+    cout << "left port:" << left_port_num << endl;
+    
+    char ip[INET_ADDRSTRLEN];
+    if (recv(client_socket_fd, ip, INET_ADDRSTRLEN, MSG_WAITALL) == -1) {
+        perror("receive failed line 46");
+        exit(1);
+    }
+
+    cout << "left ip: " << ip << endl;
+
+    
+
+
 }

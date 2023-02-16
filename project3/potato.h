@@ -4,8 +4,12 @@
 #include <iostream>
 #include <cstring>
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <string.h>
 
 using namespace std;
 
@@ -100,7 +104,7 @@ int connect_with_server(const char *hostname, const char *port) {
         return -1;
     } //if
     
-    // cout << "Connecting to " << hostname << " on port " << port << "..." << endl;
+    cout << "Connecting to " << hostname << " on port " << port << "..." << endl;
     
     status = connect(socket_fd, host_info_list->ai_addr, host_info_list->ai_addrlen);
     if (status == -1) {
@@ -130,5 +134,22 @@ int receive_int(int socket_fd) {
 
   return integer_received;
 }
+
+int get_port_num_by_socket(int socket_fd) {
+    struct sockaddr_in addr;
+    socklen_t len = sizeof(addr);
+    if(getsockname(socket_fd, (struct sockaddr *) &addr, &len) == -1) {
+        perror("getsockname");
+        return 1;
+    }
+
+    int port_num = ntohs(addr.sin_port);
+
+    printf("Local port number: %d\n", ntohs(addr.sin_port));
+
+    return port_num;
+}
+
+
 
 #endif
