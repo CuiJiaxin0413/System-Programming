@@ -13,6 +13,11 @@
 
 using namespace std;
 
+typedef struct potato {
+    int hops;
+    int trace[512];
+} potato;
+
 // init a sever socket
 int init_server_socket(const char * port) {
     int status;
@@ -59,7 +64,7 @@ int init_server_socket(const char * port) {
         return -1;
     } //if
 
-    // cout <<"Server is listening on port " << port << endl;
+    cout <<"Server is listening on port " << port << endl;
 
     return socket_fd;
 }

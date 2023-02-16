@@ -48,6 +48,8 @@ int main(int argc, char * argv[]) {
         send_int(player_client_fd, i);
         send_int(player_client_fd, num_players);
 
+        cout << "Player " << i << " is ready to play." << endl;
+
         players_socket_fd.push_back(player_client_fd);
 
         struct sockaddr_in client_addr;
@@ -65,8 +67,6 @@ int main(int argc, char * argv[]) {
         // receive from player
         int port_num = receive_int(player_client_fd);
         players_port_num.push_back(port_num);
-
-
     }
 
     // now the master has all the player's ip and port num
@@ -76,11 +76,16 @@ int main(int argc, char * argv[]) {
         // send port and ip of this player to the its right
         send_int(players_socket_fd[right_player_id], players_port_num[i]);
         
-        
         cout << players_ip[i] << endl;
 
         send(players_socket_fd[right_player_id], players_ip[i], INET_ADDRSTRLEN, MSG_WAITALL);
     }
+
+    // ringmaster init a potato
+    potato p;
+    memset(&p, 0, sizeof(potato));
+
+    // send the potato to a random player
 
 
 }
