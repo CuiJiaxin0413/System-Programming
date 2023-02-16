@@ -10,12 +10,14 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <string.h>
+#include <vector>
 
 using namespace std;
 
 typedef struct potato {
     int hops;
-    int trace[512];
+    vector<int> trace;
+    //int trace[512];
 } potato;
 
 // init a sever socket

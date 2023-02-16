@@ -60,8 +60,8 @@ int main(int argc, char * argv[]) {
         }
 
         char * ip = inet_ntoa(client_addr.sin_addr);
-        printf("IP address: %s\n", ip);
-        cout << sizeof(players_ip[i]) << endl;
+        //printf("IP address: %s\n", ip);
+        //cout << sizeof(players_ip[i]) << endl;
         players_ip.push_back(ip);
 
         // receive from player
@@ -76,16 +76,22 @@ int main(int argc, char * argv[]) {
         // send port and ip of this player to the its right
         send_int(players_socket_fd[right_player_id], players_port_num[i]);
         
-        cout << players_ip[i] << endl;
+        //cout << players_ip[i] << endl;
 
         send(players_socket_fd[right_player_id], players_ip[i], INET_ADDRSTRLEN, MSG_WAITALL);
     }
 
+    // TODO: check if hops is 0
+
     // ringmaster init a potato
     potato p;
     memset(&p, 0, sizeof(potato));
+    p.hops = num_hops;
 
     // send the potato to a random player
+    srand((unsigned int)time(NULL));
+    int random_player_id = random() % num_players;
 
+    send(players_socket_fd[random_player_id], &p, sizeof(potato), MSG_WAITALL);
 
 }

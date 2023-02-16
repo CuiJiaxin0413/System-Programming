@@ -63,4 +63,14 @@ int main(int argc, char * argv[]) {
     // accept neighbour connect
     server_connect_with_client(server_socket_fd);
 
+    char buffer[100];
+
+    recv(client_socket_fd, buffer, sizeof(buffer), MSG_WAITALL);
+
+    potato * p = (potato *) buffer;
+    p->trace.push_back(id);
+
+    cout << p->hops << endl;
+    cout << p->trace[0] << endl;
+
 }
