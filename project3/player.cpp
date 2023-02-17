@@ -2,16 +2,6 @@
 
 using namespace std;
 
-// player set up
-int player_set_up(int socket_fd) {
-    int id = receive_int(socket_fd);
-    int total_num_player = receive_int(socket_fd);
-
-    cout << "Connected as player " << id << " out of " << total_num_player << " total players" << endl;
-
-    return id;
-}
-
 // connect with neigbhours
 
 
@@ -34,7 +24,11 @@ int main(int argc, char * argv[]) {
 
     int to_master_client_socket_fd = connect_with_server(hostname, hostport);
 
-    int id = player_set_up(to_master_client_socket_fd);
+    // int id = player_set_up(to_master_client_socket_fd);
+
+    int id = receive_int(to_master_client_socket_fd);
+    int total_num_player = receive_int(to_master_client_socket_fd);
+    cout << "Connected as player " << id << " out of " << total_num_player << " total players" << endl;
 
     // player server socket port number should be assigned by os???
     int server_socket_fd = init_server_socket("");
@@ -42,10 +36,9 @@ int main(int argc, char * argv[]) {
     // send its server port to the master
     send_int(to_master_client_socket_fd, player_server_port_num);
 
-
     // receive info of left neigbour from the master
     int left_port_num = receive_int(to_master_client_socket_fd);
-    cout << "left port:" << left_port_num << endl;
+    //cout << "left port:" << left_port_num << endl;
     char left_port_num_char[10];
     sprintf(left_port_num_char, "%d", left_port_num);
     
@@ -55,43 +48,31 @@ int main(int argc, char * argv[]) {
         exit(1);
     }
 
-    cout << "left ip: " << ip << endl;
+    //cout << "left ip: " << ip << endl;
 
     // connect with left neighbour first
     // client will return immeditealy
     int left_client_fd = connect_with_server(ip, left_port_num_char);
     // accept neighbour connect
-    server_connect_with_client(server_socket_fd);
+    int right_fd = server_connect_with_client(server_socket_fd);
+
 
     char buffer[sizeof(potato)];
 
-    // recv(to_master_client_socket_fd, buffer, sizeof(buffer), MSG_WAITALL);
-
-    // potato * p = (potato *) buffer;
-    // p->trace[p->counter] = id;
-
-    // cout << p->hops << endl;
-    // cout << p->trace[0] << endl;
-
-    // p->hops -= 1;
-    // p->counter += 1;
-
     int socket_set[3];
     socket_set[0] = to_master_client_socket_fd;
-    socket_set[1] = server_socket_fd;
+    socket_set[1] = right_fd;
     socket_set[2] = left_client_fd;
     fd_set readfds;
     int max_fd = socket_set[0];
-    int bytes_received = 0;
+    int bytes_received = -2;
     // to receive the potato
     while (1) {
         FD_ZERO(&readfds);
         // add 3 socket to the set
         for (int i = 0; i < 3; i++) {
             int fd = socket_set[i];
-            if (fd > 0) {
-                FD_SET(fd, &readfds);
-            }
+            FD_SET(fd, &readfds);
             if (fd > max_fd) {
                 max_fd = fd;
             }
@@ -106,36 +87,58 @@ int main(int argc, char * argv[]) {
             return -1;
         }
 
+        potato p;
+
         for (int i = 0; i < 3; i++) {
             if (FD_ISSET(socket_set[i], &readfds)) {
-                bytes_received = recv(socket_set[i], &buffer, sizeof(potato), MSG_WAITALL);
+                bytes_received = recv(socket_set[i], &p, sizeof(potato), MSG_WAITALL);
                 break;
             }
         }
-        // 没收到
+
+        // game end, close from server
         if (bytes_received == 0) {
             break;
         }
-        // 收到了
-        potato * p = (potato *) buffer;
-        p->trace[p->counter] = id;
 
-        cout << p->hops << endl;
-        cout << p->trace[0] << endl;
+        if (bytes_received > 0) {
+            // 收到potato
+            //potato * p = (potato *) buffer;
+            p.trace[p.counter] = id;
+            p.hops -= 1;
+            p.counter += 1;
 
-        p->hops -= 1;
-        p->counter += 1;
-        break;
+
+            // the remaining number of hops is greater than 0, 
+            // ramdomly choose a neigbhor and send the potato
+            if (p.hops > 0) {
+                int rand_num = rand() % 2;
+                if (rand_num == 0) {  // send potato to right
+                    send(right_fd, &p, sizeof(potato), MSG_WAITALL);
+                    int right_id = (id + 1) % total_num_player;
+                    cout << "Sending potato to " << right_id << endl;
+                } else {
+                    send(left_client_fd, &p, sizeof(potato), MSG_WAITALL);
+                    int left_id = (id - 1 + total_num_player) % total_num_player;
+                    cout << "Sending potato to " << left_id << endl;
+                }
+            } else { // hops == 0, send to master
+                send(to_master_client_socket_fd, &p, sizeof(potato), MSG_WAITALL);
+                cout << "I'm it" << endl;
+                //break;
+            }
+
+        }
+
+        
+        //break;
 
     }
 
 
+    // close(to_master_client_socket_fd);
+    // close(server_socket_fd);
+    // close(left_client_fd);
 
-
-
-
-
-
-    
-
+    return 0;
 }

@@ -84,6 +84,8 @@ int server_connect_with_client(int socket_fd) {
         return -1;
     } //if
     
+    //cout << "accepted" << endl;
+    
     return client_connection_fd;
 }
 
@@ -114,7 +116,7 @@ int connect_with_server(const char *hostname, const char *port) {
         return -1;
     } //if
     
-    cout << "Connecting to " << hostname << " on port " << port << "..." << endl;
+    //cout << "Connecting to " << hostname << " on port " << port << "..." << endl;
     
     status = connect(socket_fd, host_info_list->ai_addr, host_info_list->ai_addrlen);
     if (status == -1) {
