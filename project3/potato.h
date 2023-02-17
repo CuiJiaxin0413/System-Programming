@@ -16,8 +16,9 @@ using namespace std;
 
 typedef struct potato {
     int hops;
-    vector<int> trace;
-    //int trace[512];
+    //vector<int> trace;
+    int trace[512];
+    int counter;
 } potato;
 
 // init a sever socket
@@ -66,7 +67,9 @@ int init_server_socket(const char * port) {
         return -1;
     } //if
 
-    cout <<"Server is listening on port " << port << endl;
+    //cout <<"Server is listening on port " << port << endl;
+
+    freeaddrinfo(host_info_list);
 
     return socket_fd;
 }
@@ -120,6 +123,8 @@ int connect_with_server(const char *hostname, const char *port) {
         return -1;
     } //if
 
+    freeaddrinfo(host_info_list);
+
     return socket_fd;
 }
 
@@ -152,7 +157,7 @@ int get_port_num_by_socket(int socket_fd) {
 
     int port_num = ntohs(addr.sin_port);
 
-    printf("Local port number: %d\n", ntohs(addr.sin_port));
+    //printf("Local port number: %d\n", ntohs(addr.sin_port));
 
     return port_num;
 }
