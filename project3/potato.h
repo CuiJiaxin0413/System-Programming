@@ -141,8 +141,8 @@ int receive_int(int socket_fd) {
     int integer_received;
     int bytes_received = recv(socket_fd, &integer_received, sizeof(integer_received), 0);
     if (bytes_received == -1) {
-        perror("recv failed");
-        exit(1);
+        cerr << "recv failed" << endl;
+        return -1;
     }
     integer_received = ntohl(integer_received);
 
@@ -153,8 +153,8 @@ int get_port_num_by_socket(int socket_fd) {
     struct sockaddr_in addr;
     socklen_t len = sizeof(addr);
     if(getsockname(socket_fd, (struct sockaddr *) &addr, &len) == -1) {
-        perror("getsockname");
-        return 1;
+        cerr << "get socket name" << endl;
+        return -1;
     }
 
     int port_num = ntohs(addr.sin_port);

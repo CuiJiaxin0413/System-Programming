@@ -46,7 +46,7 @@ int main(int argc, char * argv[]) {
         send_int(player_client_fd, i);
         send_int(player_client_fd, num_players);
 
-        cout << "Player " << i << " is ready to play." << endl;
+        cout << "Player " << i << " is ready to play" << endl;
 
         players_socket_fd.push_back(player_client_fd);
 
@@ -85,6 +85,9 @@ int main(int argc, char * argv[]) {
     // hop == 0, just end the game
     if (p.hops == 0) {
         close(ringmaster_server_socket);
+        for (int i = 0; i < num_players; i++) {
+            close(players_socket_fd[i]);
+        }
         return 0;
     }
 
@@ -96,6 +99,7 @@ int main(int argc, char * argv[]) {
     cout << "Ready to start the game, sending potato to player " << random_player_id << endl;
 
     // listen to all the n connections with the player to receive the potato and end the game
+    // this does not need a loop, because ringmaster just receive one time for the potato
     fd_set readfds;
     FD_ZERO(&readfds);
     int max_fd = players_socket_fd[0];
@@ -107,9 +111,9 @@ int main(int argc, char * argv[]) {
         } 
         FD_SET(players_socket_fd[i], &readfds);
     }
-    //cout << max_fd << endl;
+
     select(max_fd+1, &readfds, NULL, NULL, NULL);
-    //cout << "=====114=====" << endl;
+
     for (int i = 0; i < num_players; i++) {
         if (FD_ISSET(players_socket_fd[i], &readfds)) {
             //cout << "here" << endl;
@@ -120,7 +124,6 @@ int main(int argc, char * argv[]) {
             
         }
     }
-    //cout << "counter:" <<  p.counter << endl;
 
     // print trace of the potato
     cout << "Trace of the potato:" << endl;
@@ -133,4 +136,10 @@ int main(int argc, char * argv[]) {
         
     }
     cout << endl;
+
+    // close the socket
+    close(ringmaster_server_socket);
+    for (int i = 0; i < num_players; i++) {
+        close(players_socket_fd[i]);
+    }
 }
