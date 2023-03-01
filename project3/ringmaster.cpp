@@ -126,7 +126,7 @@ int main(int argc, char * argv[]) {
     }
 
     // print trace of the potato
-    cout << "Trace of the potato:" << endl;
+    cout << "Trace of potato:" << endl;
     for (int i = 0; i < p.counter; i++) {
         if (i != p.counter - 1) {
             cout << p.trace[i] << ",";
