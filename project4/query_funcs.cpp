@@ -116,13 +116,13 @@ void query1(connection * C,
   if (use_spg) {
     string cond = firstUseFlag ? "WHERE " : "AND ";
     select << cond;
-    select << "spg BETWEEN " << min_spg << " AND " << max_spg << ") ";
+    select << "(spg BETWEEN " << min_spg << " AND " << max_spg << ") ";
     firstUseFlag = false;
   }
   if (use_bpg) {
     string cond = firstUseFlag ? "WHERE " : "AND ";
     select << cond;
-    select << "bpg BETWEEN " << min_bpg << " AND " << max_bpg << ") ";
+    select << "(bpg BETWEEN " << min_bpg << " AND " << max_bpg << ") ";
     firstUseFlag = false;
   }
 
@@ -212,10 +212,9 @@ void query5(connection * C, int num_wins) {
   work w(*C);
   C->prepare("query5",
              "SELECT player.first_name, player.last_name, team.name, team.wins "
-             "FROM player "
-             "INNER JOIN team "
-             "ON player.team_id = team.team_id "
-             "WHERE team.wins > $1");
+             "FROM player, team "
+             "WHERE player.team_id = team.team_id "
+             "AND team.wins > $1");
   result r = w.exec_prepared("query5", num_wins);
   cout << "FIRST_NAME LAST_NAME NAME WINS" << endl;
   for (const auto & row : r) {
